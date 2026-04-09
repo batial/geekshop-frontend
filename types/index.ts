@@ -28,12 +28,12 @@ export interface ProductResponse {
   name: string;
   description: string;
   price: number;
-  stock: number;
-  type: "SHIRT" | "PRINT_3D" | "ACCESSORY";
+  stock: number;         // solo para productos sin variantes (category.hasVariants = false)
   active: boolean;
   categoryId: string;
   categoryName: string;
   images: ProductImageResponse[];
+  variants: ProductVariantResponse[];  // array vacío si no tiene variantes
 }
 
 export interface ProductImageResponse {
@@ -42,13 +42,29 @@ export interface ProductImageResponse {
   isMain: boolean;
 }
 
+export interface ProductVariantResponse {
+  id: string;
+  size: string;
+  color: string;
+  stock: number;
+  priceModifier: number;
+  finalPrice: number;    // price + priceModifier
+}
+
 export interface ProductRequest {
   name: string;
   description: string;
   price: number;
   stock: number;
-  type: "SHIRT" | "PRINT_3D" | "ACCESSORY";
   categoryId: string;
+  variants?: ProductVariantRequest[];  // solo para categorías con hasVariants = true
+}
+
+export interface ProductVariantRequest {
+  size: string;
+  color: string;
+  stock: number;
+  priceModifier: number;
 }
 
 // CATEGORY - Categorías
@@ -58,12 +74,14 @@ export interface CategoryResponse {
   name: string;
   slug: string;
   description: string;
+  hasVariants: boolean;  // determina si los productos de esta categoría usan variantes
 }
 
 export interface CategoryRequest {
   name: string;
   slug: string;
   description: string;
+  hasVariants?: boolean; // opcional, default false
 }
 
 // ORDER - Órdenes/Pedidos
@@ -73,6 +91,8 @@ export interface OrderResponse {
   status: "PENDING" | "CONFIRMED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
   total: number;
   shippingAddress: string;
+  city: string;
+  phone: string;
   items: OrderItemResponse[];
   createdAt: string;
 }
@@ -81,13 +101,24 @@ export interface OrderItemResponse {
   id: string;
   productId: string;
   productName: string;
+  size: string | null;    // snapshot de variante (null si no tiene)
+  color: string | null;   // snapshot de variante (null si no tiene)
   quantity: number;
   unitPrice: number;
+  subtotal: number;
 }
 
 export interface OrderRequest {
   shippingAddress: string;
-  items: Record<string, number>; // { "productId": quantity }
+  city: string;
+  phone: string;
+  items: OrderItemRequest[];
+}
+
+export interface OrderItemRequest {
+  productId: string;
+  variantId: string | null;  // null para productos sin variantes
+  quantity: number;
 }
 
 // PAYMENT - Pagos
@@ -120,8 +151,14 @@ export interface Page<T> {
 }
 
 // CART - Carrito (solo frontend)
+// La clave única de un item es productId + variantId (un mismo producto
+// puede estar en el carrito en distintas variantes: M/Negro y L/Blanco)
 
 export interface CartItem {
   product: ProductResponse;
+  variantId: string | null;   // null para productos sin variantes
+  size: string | null;        // para mostrar en el carrito
+  color: string | null;       // para mostrar en el carrito
   quantity: number;
+  unitPrice: number;          // finalPrice de la variante, o price del producto
 }
