@@ -15,14 +15,9 @@ export default function HomePage() {
 
   const fetchProducts = async () => {
     try {
-      // Pedimos los primeros 6 productos
       const { data } = await api.get("/products", {
-        params: {
-          page: 0,
-          size: 6,
-        },
+        params: { page: 0, size: 6 },
       });
-      
       setProducts(data.content);
     } catch (error) {
       console.error("Error al cargar productos:", error);
@@ -34,32 +29,30 @@ export default function HomePage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500">Cargando productos...</p>
+        <p className="text-gray-500">Cargando...</p>
       </div>
     );
   }
 
   return (
     <div>
-      {/* Hero Section */}
-      <section className="bg-linear-to-r from-green-600 to-green-400 text-white py-20">
+      {/* Hero */}
+      <section className="bg-gradient-to-r from-green-600 to-green-400 text-white py-20">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-5xl font-bold mb-4">
-            Bienvenido a GeekShop
-          </h1>
+          <h1 className="text-5xl font-bold mb-4">Bienvenido a GeekShop</h1>
           <p className="text-xl mb-8">
             Remeras, impresiones 3D y accesorios para verdaderos geeks
           </p>
           <Link
             href="/products"
-            className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition"
+            className="bg-white text-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition"
           >
             Ver Catálogo
           </Link>
         </div>
       </section>
 
-      {/* Productos Destacados */}
+      {/* Productos destacados */}
       <section className="py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">
@@ -81,7 +74,7 @@ export default function HomePage() {
           <div className="text-center mt-12">
             <Link
               href="/products"
-              className="text-blue-600 hover:text-blue-700 font-semibold"
+              className="text-green-600 hover:text-green-700 font-semibold"
             >
               Ver todos los productos →
             </Link>
@@ -92,21 +85,21 @@ export default function HomePage() {
   );
 }
 
-// ============================================
-// COMPONENTE: ProductCard
-// ============================================
 interface ProductCardProps {
   product: ProductResponse;
 }
 
 function ProductCard({ product }: ProductCardProps) {
-  // Obtener la imagen principal o la primera imagen (con validación)
   const mainImage = product.images?.find((img) => img.isMain) || product.images?.[0];
+
+  const hasVariants = product.variants && product.variants.length > 0;
+  const totalStock = hasVariants
+    ? product.variants.reduce((sum, v) => sum + v.stock, 0)
+    : product.stock;
 
   return (
     <Link href={`/products/${product.id}`}>
       <div className="border rounded-lg overflow-hidden hover:shadow-lg transition cursor-pointer">
-        {/* Imagen del producto */}
         <div className="aspect-square bg-gray-200 flex items-center justify-center">
           {mainImage ? (
             <img
@@ -134,29 +127,21 @@ function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
 
-        {/* Info del producto */}
         <div className="p-4">
-          <h3 className="font-semibold text-lg mb-2 line-clamp-2">
-            {product.name}
-          </h3>
-          
-          <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-            {product.description}
-          </p>
+          <p className="text-xs text-gray-400 mb-1">{product.categoryName}</p>
+          <h3 className="font-semibold text-lg mb-2 line-clamp-2">{product.name}</h3>
+          <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
 
           <div className="flex items-center justify-between">
-            <span className="text-2xl font-bold text-blue-600">
+            <span className="text-2xl font-bold text-green-600">
               ${product.price.toLocaleString()}
             </span>
-            
-            {product.stock > 0 ? (
+            {totalStock > 0 ? (
               <span className="text-sm text-green-600">
-                Stock: {product.stock}
+                {hasVariants ? "Con talles" : `Stock: ${product.stock}`}
               </span>
             ) : (
-              <span className="text-sm text-red-600">
-                Sin stock
-              </span>
+              <span className="text-sm text-red-600">Sin stock</span>
             )}
           </div>
         </div>
