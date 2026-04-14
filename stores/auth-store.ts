@@ -29,6 +29,10 @@ export const useAuthStore = create<AuthState>()(
             password,
           });
           localStorage.setItem("token", data.token!);
+          // Guardamos el token en una cookie para que el middleware lo pueda leer.
+          // max-age=86400 = 24 horas (igual que la expiración del JWT)
+          // SameSite=Strict = la cookie solo se envía en requests del mismo sitio (seguridad)
+          document.cookie = `token=${data.token}; path=/; max-age=86400; SameSite=Strict`;
 
           set({
             user: data,
@@ -49,6 +53,7 @@ export const useAuthStore = create<AuthState>()(
           );
 
           localStorage.setItem("token", data.token!);
+          document.cookie = `token=${data.token}; path=/; max-age=86400; SameSite=Strict`;
 
           set({
             user: data,
@@ -62,8 +67,9 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-
         localStorage.removeItem("token");
+        // Eliminamos la cookie seteando max-age=0 (expira inmediatamente)
+        document.cookie = "token=; path=/; max-age=0; SameSite=Strict";
 
         set({
           user: null,

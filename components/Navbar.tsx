@@ -7,13 +7,22 @@ import { useAuthStore } from "@/stores/auth-store";
 
 export default function Navbar() {
   const totalItems = useCartStore((state) => state.totalItems);
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated, logout, token, loadUser } = useAuthStore();
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     const frame = requestAnimationFrame(() => setMounted(true));
     return () => cancelAnimationFrame(frame);
   }, []);
+
+  // Cuando el componente monta en el cliente, si hay token guardado
+  // pero el usuario no está cargado (pasa al recargar la página),
+  // llamamos a loadUser() que hace GET /api/auth/me y restaura el estado.
+  useEffect(() => {
+    if (token && !user) {
+      loadUser();
+    }
+  }, [token, user, loadUser]);
 
   return (
     <nav className="border-b bg-white">
@@ -68,6 +77,12 @@ export default function Navbar() {
                 <span className="text-sm text-gray-600">
                   Hola, <strong>{user.firstName}</strong>
                 </span>
+                <Link
+                  href="/orders"
+                  className="text-sm hover:text-green-600 transition"
+                >
+                  Mis pedidos
+                </Link>
                 <button
                   onClick={logout}
                   className="text-sm text-red-500 hover:text-red-700 transition"
